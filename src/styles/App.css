@@ -1,0 +1,79 @@
+* {
+  box-sizing: border-box;
+  margin: 0px;
+  padding: 0px;
+}
+
+/* APP */
+.app {
+  height: 100vh;
+  overflow-y: hidden;
+  overflow-x: hidden;
+  background-color: #f4f4f4;
+}
+
+.navbar {
+  width: 100vw;
+  background: linear-gradient(0.35turn, rgb(1, 143, 143), rgb(0, 201, 201));
+}
+
+.container {
+  max-width: 1480px;
+  margin: auto;
+}
+
+.title {
+  display: inline-block;
+  font-family: "Urbanist", sans-serif;
+  width: auto;
+  color: #f4f4f4;
+  font-size: 2.5rem;
+  font-weight: lighter;
+  padding: 10px;
+  cursor: default;
+}
+
+.plot-section {
+  height: 100%;
+}
+
+/* Plot */
+.plot {
+  margin-top: 20px;
+  position: relative;
+  height: calc(100% - 25vh);
+  width: 100%;
+  border: 1px solid black;
+  /* background: rgba(0, 0, 255, 0.521); */
+}
+
+.canvas {
+  /* background: rgba(255, 166, 0, 0.466); */
+}
+
+/* Dot */
+.dot {
+  background: radial-gradient(rgb(216, 2, 2), darkred);
+  height: 10px;
+  width: 10px;
+  border-radius: 50%;
+
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  z-index: 1;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dot:hover {
+  cursor: pointer;
+}
+
+.coord {
+  color: #f4f4f4;
+  font-family: "Urbanist", sans-serif;
+  font-size: 01rem;
+}
