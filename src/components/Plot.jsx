@@ -1,25 +1,13 @@
 import React, { Component } from "react";
-import { range } from "mathjs";
+import { ones, range } from "mathjs";
+import regression from "../algorithms/PolynomialRegression.jsx";
 
 class Plot extends Component {
   state = {
-    points: ["point1", "point2", "point3"],
-    point1: {
-      id: "point1",
-      pos: [0, 0, 0, 0],
-    },
-    point2: {
-      id: "point2",
-      pos: [0, 0, 0, 0],
-    },
-    point3: {
-      id: "point3",
-      pos: [0, 0, 0, 0],
-    },
-
+    numPoints: 0,
     boxwidth: 0,
     boxHeight: 0,
-    dotDiameter: 10,
+    dotDiameter: 15,
     selected: null,
     canvasRef: React.createRef(),
     axes: {
@@ -28,17 +16,39 @@ class Plot extends Component {
       xRangeCoords: [-5, 5],
       yRangeCoords: [-5, 5],
     },
+    mousePan: [0, 0],
+    coeffs: [0, 0],
   };
 
   componentDidMount() {
     this.resize();
 
-    this.state.points.forEach((pointId) => {
-      this.dragElement(document.getElementById(pointId));
-    });
-
     // Listen for resizing of the page
     window.addEventListener("resize", this.resize);
+  }
+
+  shouldComponentUpdate = (nextProps) => {
+    if (
+      this.state.numPoints !== nextProps.points.length ||
+      this.state.coeffs.length !== nextProps.regressionDegree + 1
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  componentDidUpdate() {
+    this.setState({
+      numPoints: this.props.points.length,
+      coeffs: ones(this.props.regressionDegree + 1).valueOf(),
+    });
+
+    this.props.pointObjects.forEach((pointObj) => {
+      this.dragElement(pointObj.ref.current);
+    });
+
+    this.resize();
   }
 
   resize = () => {
@@ -68,6 +78,8 @@ class Plot extends Component {
       // Add eventlistener for zooming
       canvas.onwheel = this.zoom;
 
+      this.panElement(canvas);
+
       canvas.height = boxHeight;
       canvas.width = boxWidth;
       this.draw(canvas);
@@ -77,6 +89,11 @@ class Plot extends Component {
   // Method to define elements as drag elements
   dragElement = (elmnt) => {
     elmnt.onmousedown = this.dragMouseDown;
+  };
+
+  // Method to define elements as pan elements
+  panElement = (elmnt) => {
+    elmnt.onmousedown = this.panMouseDown;
   };
 
   // Method to handle mouse down on a drag element (e is event)
@@ -97,7 +114,9 @@ class Plot extends Component {
 
     // Get the point which is being dragged
     // update the mouse cursor position at the start
-    const point = this.state[elementId];
+    const point = this.props.pointObjects.find((ptObj) => {
+      return ptObj.id === elementId;
+    });
 
     point.pos[2] = e.clientX;
     point.pos[3] = e.clientY;
@@ -113,6 +132,19 @@ class Plot extends Component {
     document.onmousemove = this.elementDrag;
   };
 
+  panMouseDown = (e) => {
+    e = e || window.event;
+    e.preventDefault();
+
+    // save the position of the mouse at the beginning of the pan
+    this.setState({
+      mousePan: [e.clientX, e.clientY],
+    });
+
+    document.onmousemove = this.elementPan;
+    document.onmouseup = this.closePanElement;
+  };
+
   // Method to move an element
   elementDrag = (e) => {
     e = e || window.event;
@@ -126,7 +158,9 @@ class Plot extends Component {
     elmnt.style.cursor = "move";
 
     // get the point and calculate it's new position
-    const point = this.state[elementId];
+    const point = this.props.pointObjects.find((ptObj) => {
+      return ptObj.id === elementId;
+    });
 
     // const point = points.find((pt) => pt.id === elementId);
     const startX = point.pos[2];
@@ -144,25 +178,55 @@ class Plot extends Component {
     const newTop = elmnt.offsetTop - difY;
     const newLeft = elmnt.offsetLeft - difX;
 
-    if (newTop < 0) {
-      elmnt.style.top = "0px";
-    } else if (this.state.boxHeight - this.state.dotDiameter < newTop) {
-      elmnt.style.top = this.state.boxHeight - this.state.dotDiameter + "px";
-    } else {
-      elmnt.style.top = newTop + "px";
-    }
-
-    if (newLeft < 0) {
-      elmnt.style.left = "0px";
-    } else if (this.state.boxWidth - this.state.dotDiameter < newLeft) {
-      elmnt.style.left = this.state.boxWidth - this.state.dotDiameter + "px";
-    } else {
-      elmnt.style.left = newLeft + "px";
-    }
+    const canvas = this.state.canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    point.coords = [
+      this.xPixel2Coord(
+        newLeft + 0.5 * this.state.dotDiameter,
+        ctx,
+        this.state.axes
+      ),
+      this.yPixel2Coord(
+        newTop + 0.5 * this.state.dotDiameter,
+        ctx,
+        this.state.axes
+      ),
+    ];
 
     this.setState({
       [point.id]: point,
     });
+
+    // Update the coordinates in the object
+    this.draw(canvas);
+  };
+
+  elementPan = (e) => {
+    e = e || window.event;
+    e.preventDefault();
+
+    const startX = this.state.mousePan[0];
+    const startY = this.state.mousePan[1];
+    const difX = startX - e.clientX;
+    const difY = startY - e.clientY;
+
+    const axes = this.state.axes;
+    const xRange = axes.xRangeCoords[1] - axes.xRangeCoords[0];
+    const yRange = axes.yRangeCoords[1] - axes.yRangeCoords[0];
+    const pixelHeight = this.state.canvasRef.current.height;
+    const pixelWidth = this.state.canvasRef.current.width;
+
+    axes.xRangeCoords[0] = axes.xRangeCoords[0] + difX / (pixelWidth / xRange);
+    axes.xRangeCoords[1] = axes.xRangeCoords[1] + difX / (pixelWidth / xRange);
+    axes.yRangeCoords[0] = axes.yRangeCoords[0] - difY / (pixelHeight / yRange);
+    axes.yRangeCoords[1] = axes.yRangeCoords[1] - difY / (pixelHeight / yRange);
+
+    this.setState({
+      axes,
+      mousePan: [e.clientX, e.clientY],
+    });
+
+    this.draw(this.state.canvasRef.current);
   };
 
   closeDragElement = () => {
@@ -176,91 +240,98 @@ class Plot extends Component {
     document.onmousemove = null;
   };
 
+  closePanElement = () => {
+    this.setState({
+      mousePan: [0, 0],
+    });
+    document.onmouseup = null;
+    document.onmousemove = null;
+  };
+
   // Method to handle the zooming in the plot
   zoom = (e) => {
     e = e || window.event;
     e.preventDefault();
 
-    const zoomScale = e.deltaY * -0.014;
-
-    if (zoomScale < 0) {
+    const canvas = this.state.canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
       const axes = this.state.axes;
-      const deltaXRange =
-        (axes.xRangeCoords[1] - axes.xRangeCoords[0]) *
-        (Math.abs(zoomScale) - 1);
-      const deltaYRange =
-        (axes.yRangeCoords[1] - axes.yRangeCoords[0]) *
-        (Math.abs(zoomScale) - 1);
 
-      axes.xRangeCoords[0] = Math.max(
-        axes.xRangeCoords[0] - 0.5 * deltaXRange,
-        -100
-      );
-      axes.xRangeCoords[1] = Math.min(
-        axes.xRangeCoords[1] + 0.5 * deltaXRange,
-        100
-      );
+      const zoomScale = e.deltaY * -0.012;
 
-      axes.yRangeCoords[0] = Math.max(
-        axes.yRangeCoords[0] - 0.5 * deltaYRange,
-        -100
-      );
-      axes.yRangeCoords[1] = Math.min(
-        axes.yRangeCoords[1] + 0.5 * deltaYRange,
-        100
-      );
+      if (zoomScale < 0) {
+        // Zoom out
+        const deltaXRange =
+          (axes.xRangeCoords[1] - axes.xRangeCoords[0]) *
+          (Math.abs(zoomScale) - 1);
+        const deltaYRange =
+          (axes.yRangeCoords[1] - axes.yRangeCoords[0]) *
+          (Math.abs(zoomScale) - 1);
 
-      this.setState({
-        axes,
-      });
+        axes.xRangeCoords[0] = Math.max(
+          axes.xRangeCoords[0] - 0.5 * deltaXRange,
+          -100
+        );
+        axes.xRangeCoords[1] = Math.min(
+          axes.xRangeCoords[1] + 0.5 * deltaXRange,
+          100
+        );
 
-      const canvas = this.state.canvasRef.current;
-      if (canvas) {
-        this.draw(canvas);
+        axes.yRangeCoords[0] = Math.max(
+          axes.yRangeCoords[0] - 0.5 * deltaYRange,
+          -100
+        );
+        axes.yRangeCoords[1] = Math.min(
+          axes.yRangeCoords[1] + 0.5 * deltaYRange,
+          100
+        );
+
+        this.setState({
+          axes,
+        });
+      } else {
+        // Zoom in
+        const deltaXRange =
+          (axes.xRangeCoords[1] - axes.xRangeCoords[0]) * (zoomScale - 1);
+        const deltaYRange =
+          (axes.yRangeCoords[1] - axes.yRangeCoords[0]) * (zoomScale - 1);
+
+        axes.xRangeCoords[0] = Math.max(
+          axes.xRangeCoords[0] + 0.5 * deltaXRange,
+          -100
+        );
+        axes.xRangeCoords[1] = Math.min(
+          axes.xRangeCoords[1] - 0.5 * deltaXRange,
+          100
+        );
+
+        axes.yRangeCoords[0] = Math.max(
+          axes.yRangeCoords[0] + 0.5 * deltaYRange,
+          -100
+        );
+        axes.yRangeCoords[1] = Math.min(
+          axes.yRangeCoords[1] - 0.5 * deltaYRange,
+          100
+        );
+
+        this.setState({
+          axes,
+        });
       }
-    } else {
-      const axes = this.state.axes;
-      const deltaXRange =
-        (axes.xRangeCoords[1] - axes.xRangeCoords[0]) * (zoomScale - 1);
-      const deltaYRange =
-        (axes.yRangeCoords[1] - axes.yRangeCoords[0]) * (zoomScale - 1);
 
-      axes.xRangeCoords[0] = Math.max(
-        axes.xRangeCoords[0] + 0.5 * deltaXRange,
-        -100
-      );
-      axes.xRangeCoords[1] = Math.min(
-        axes.xRangeCoords[1] - 0.5 * deltaXRange,
-        100
-      );
-
-      axes.yRangeCoords[0] = Math.max(
-        axes.yRangeCoords[0] + 0.5 * deltaYRange,
-        -100
-      );
-      axes.yRangeCoords[1] = Math.min(
-        axes.yRangeCoords[1] - 0.5 * deltaYRange,
-        100
-      );
-
-      this.setState({
-        axes,
-      });
-
-      const canvas = this.state.canvasRef.current;
-      if (canvas) {
-        this.draw(canvas);
-      }
+      this.draw(canvas);
     }
   };
 
-  // Method to handle the panning of the plot
-  pan = (e) => {
-    e = e || window.event;
-    e.preventDefault();
+  regressionPolynomial = (x) => {
+    var y = 0;
+    this.state.coeffs.forEach((coeff, idx) => {
+      const power = this.state.coeffs.length - 1 - idx;
+      y = y + coeff * x ** power;
+    });
+    return y;
   };
-
-  sinFunction = (x) => 5 * Math.sin(x);
 
   draw = (canvas) => {
     var ctx = canvas.getContext("2d");
@@ -269,7 +340,67 @@ class Plot extends Component {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     this.showAxes(ctx, this.state.axes);
-    this.funGraph(ctx, this.state.axes, this.sinFunction, "rgb(0, 0, 0)");
+    this.updatePoints(ctx, this.state.axes);
+
+    // Generate the regression curve
+    const numPoints = this.props.points.length;
+    const xData = ones(numPoints).map((val, idx) => {
+      const point = this.props.pointObjects[idx];
+
+      return point.coords[0];
+    });
+    const yData = ones(numPoints).map((val, idx) => {
+      const pointId = this.props.points[idx];
+      const point = this.props.pointObjects[idx];
+
+      return point.coords[1];
+    });
+
+    if (numPoints > this.props.regressionDegree) {
+      const coeffs = regression(xData, yData, this.props.regressionDegree);
+
+      this.setState({
+        coeffs,
+      });
+
+      this.funGraph(
+        ctx,
+        this.state.axes,
+        this.regressionPolynomial,
+        "rgb(0, 0, 0)"
+      );
+    }
+  };
+
+  updatePoints = (ctx, axes) => {
+    this.props.points.forEach((pointId, idx) => {
+      // Get the point state and element
+      const point = this.props.pointObjects[idx];
+      const pointElmnt = point.ref.current;
+
+      // Get the coordinates of the point
+      const xCoord = point.coords[0];
+      const yCoord = point.coords[1];
+
+      // convert to pixels
+      const xPixel =
+        this.xCoord2Pixel(xCoord, ctx, axes) - 0.5 * this.state.dotDiameter;
+      const yPixel =
+        this.yCoord2Pixel(yCoord, ctx, axes) - 0.5 * this.state.dotDiameter;
+
+      if (
+        axes.xRangeCoords[0] < xCoord &&
+        xCoord < axes.xRangeCoords[1] &&
+        axes.yRangeCoords[0] < yCoord &&
+        yCoord < axes.yRangeCoords[1]
+      ) {
+        pointElmnt.style.top = yPixel.toString() + "px";
+        pointElmnt.style.left = xPixel.toString() + "px";
+        pointElmnt.style.visibility = "visible";
+      } else {
+        pointElmnt.style.visibility = "hidden";
+      }
+    });
   };
 
   xPixel2Coord = (xPixel, ctx, axes) => {
@@ -413,10 +544,12 @@ class Plot extends Component {
       const label = tickXCoords.valueOf()[idx].toString();
       const leftOffset = ctx.measureText(label).width / 2;
 
-      if (lowerYPixel + 15 > ctx.canvas.height) {
-        ctx.fillText(label, xPixel - leftOffset, upperYPixel - 5);
-      } else {
-        ctx.fillText(label, xPixel - leftOffset, lowerYPixel + 15);
+      if (label !== "0") {
+        if (lowerYPixel + 15 > ctx.canvas.height) {
+          ctx.fillText(label, xPixel - leftOffset, upperYPixel - 5);
+        } else {
+          ctx.fillText(label, xPixel - leftOffset, lowerYPixel + 15);
+        }
       }
     });
 
@@ -441,11 +574,12 @@ class Plot extends Component {
       ctx.font = "1rem Urbanist";
       const label = tickYCoords.valueOf()[idx].toString();
       const leftOffset = ctx.measureText(label).width + 5;
-
-      if (leftXPixel - leftOffset <= 0) {
-        ctx.fillText(label, rightXPixel + 5, yPixel + 5);
-      } else {
-        ctx.fillText(label, leftXPixel - leftOffset, yPixel + 5);
+      if (label !== "0") {
+        if (leftXPixel - leftOffset <= 0) {
+          ctx.fillText(label, rightXPixel + 5, yPixel + 5);
+        } else {
+          ctx.fillText(label, leftXPixel - leftOffset, yPixel + 5);
+        }
       }
     });
 
@@ -466,13 +600,34 @@ class Plot extends Component {
           className="canvas"
           ref={this.state.canvasRef}
         ></canvas>
-        {Object.values(this.state.points).map((pointId) => {
-          return (
-            <div id={pointId} key={pointId} className="dot">
-              <p className="coord"></p>
-            </div>
-          );
-        })}
+        {this.state.canvasRef && Object.values(this.props.points).length > 0
+          ? Object.values(this.props.points).map((pointId, idx) => {
+              return (
+                <div
+                  id={pointId}
+                  key={pointId}
+                  className="dot"
+                  ref={this.props.pointObjects[idx].ref}
+                  left={
+                    this.xCoord2Pixel(
+                      this.props.pointObjects[idx].coords[0],
+                      this.state.canvasRef.current.getContext("2d"),
+                      this.state.axes
+                    ).toString() + "px"
+                  }
+                  top={
+                    this.xCoord2Pixel(
+                      this.props.pointObjects[idx].coords[1],
+                      this.state.canvasRef.current.getContext("2d"),
+                      this.state.axes
+                    ).toString() + "px"
+                  }
+                >
+                  <p className="coord"></p>
+                </div>
+              );
+            })
+          : null}
       </div>
     );
   }

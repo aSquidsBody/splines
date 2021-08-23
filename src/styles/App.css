@@ -35,27 +35,29 @@
 
 .plot-section {
   height: 100%;
+  width: 100%;
+}
+
+.options-bar {
+  height: 15vh;
+  width: 100%;
 }
 
 /* Plot */
 .plot {
-  margin-top: 20px;
+  margin-bottom: 20px;
   position: relative;
   height: calc(100% - 25vh);
   width: 100%;
   border: 1px solid black;
-  /* background: rgba(0, 0, 255, 0.521); */
-}
-
-.canvas {
-  /* background: rgba(255, 166, 0, 0.466); */
+  background: white;
 }
 
 /* Dot */
 .dot {
   background: radial-gradient(rgb(216, 2, 2), darkred);
-  height: 10px;
-  width: 10px;
+  height: 15px;
+  width: 15px;
   border-radius: 50%;
 
   position: absolute;
