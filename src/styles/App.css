@@ -79,3 +79,24 @@
   font-family: "Urbanist", sans-serif;
   font-size: 01rem;
 }
+
+/* Buttons and inputs */
+.btn {
+  background: linear-gradient(darkblue, rgb(0, 0, 90));
+  font-family: "Urbanist", sans-serif;
+  font-size: 1.5rem;
+  /* font-weight: bold; */
+  padding: 5px 20px;
+  margin: 10px;
+  color: #f4f4f4;
+  border-radius: 5px;
+  border: none;
+}
+
+.degree-form > div {
+  display: flex;
+}
+
+.radio {
+  margin: 10px;
+}

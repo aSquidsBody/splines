@@ -64,33 +64,39 @@ class App extends Component {
         </nav>
         <section className="plot-section container">
           <section className="options-bar container">
-            <input type="button" onClick={this.addPoint} value="Add a point" />
+            <input
+              class="btn"
+              type="button"
+              onClick={this.addPoint}
+              value="Add Points"
+            />
 
             <form className="degree-form" onSubmit={this.formSubmit}>
-              {Array.from(new Array(this.state.maxDegree), (x, idx) => {
-                return (
-                  <div className="radio" key={idx.toString() + "poly"}>
-                    <label>
-                      <input
-                        type="radio"
-                        value={idx + 1}
-                        checked={this.state.regressionDegree === idx + 1}
-                        onChange={this.onDegreeChange}
-                      />
-                      {idx + 1 === 1
-                        ? "Linear"
-                        : idx + 1 === 2
-                        ? "Quadratic"
-                        : idx + 1 === 3
-                        ? "Cubic"
-                        : (idx + 1).toString() + "th degree"}
-                    </label>
-                  </div>
-                );
-              })}
-              <button className="btn btn-default" type="submit">
-                Submit
-              </button>
+              <div>
+                {Array.from(new Array(this.state.maxDegree), (x, idx) => {
+                  return (
+                    <div className="radio" key={idx.toString() + "poly"}>
+                      <label>
+                        <input
+                          type="radio"
+                          value={idx + 1}
+                          checked={this.state.regressionDegree === idx + 1}
+                          onChange={this.onDegreeChange}
+                        />
+                        {idx + 1 === 1
+                          ? "Linear"
+                          : idx + 1 === 2
+                          ? "Quadratic"
+                          : idx + 1 === 3
+                          ? "Cubic"
+                          : (idx + 1).toString() + "th degree"}
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <button type="submit">Submit</button>
             </form>
           </section>
           <Plot
