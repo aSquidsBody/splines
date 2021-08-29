@@ -12,6 +12,8 @@ const testMatrix = math
   .matrix([1, 2, 3])
   .map((xi) => math.matrix([1, xi, xi ** 2]));
 
+console.log(testMatrix.valueOf()[0]);
+
 const getMatrix = (xData, degree) =>
   xData.map((xi) =>
     math

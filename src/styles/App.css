@@ -2,12 +2,12 @@
   box-sizing: border-box;
   margin: 0px;
   padding: 0px;
+  font-family: "Urbanist", sans-serif;
 }
 
 /* APP */
 .app {
   height: 100vh;
-  overflow-y: hidden;
   overflow-x: hidden;
   background-color: #f4f4f4;
 }
@@ -38,19 +38,16 @@
   width: 100%;
 }
 
-.options-bar {
-  height: 15vh;
-  width: 100%;
-}
-
 /* Plot */
 .plot {
-  margin-bottom: 20px;
+  margin: 10px;
   position: relative;
-  height: calc(100% - 25vh);
+  height: 588px;
   width: 100%;
   border: 1px solid black;
   background: white;
+  z-index: 0;
+  box-shadow: rgb(161, 161, 161) 1px -1px 5px 1px;
 }
 
 /* Dot */
@@ -76,27 +73,73 @@
 
 .coord {
   color: #f4f4f4;
-  font-family: "Urbanist", sans-serif;
+
   font-size: 01rem;
 }
 
 /* Buttons and inputs */
+.options-bar {
+  width: 100%;
+  margin: 10px;
+}
+
 .btn {
   background: linear-gradient(darkblue, rgb(0, 0, 90));
   font-family: "Urbanist", sans-serif;
-  font-size: 1.5rem;
-  /* font-weight: bold; */
+  font-size: 1.2rem;
   padding: 5px 20px;
   margin: 10px;
   color: #f4f4f4;
   border-radius: 5px;
   border: none;
 }
-
-.degree-form > div {
-  display: flex;
+.btn::before {
+  content: "";
+  height: 100%;
+  width: 100%;
+  background-color: red;
 }
 
-.radio {
+.btn:hover {
+  cursor: pointer;
+}
+
+.btn:active {
+  opacity: 0.75;
+  background: linear-gradient(darkred, rgb(0, 0, 90));
+  transform: translateY(2px) translateX(1px);
+}
+
+.point-form {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.coord-input {
+  padding: 5px 0px;
+  margin: 2px;
+  border-radius: 5px;
+  font-size: 1rem;
+  width: 3rem;
+  text-align: center;
+}
+
+.coord-input:focus {
+  background-color: rgb(0, 255, 255, 0.1);
+  outline: none;
+}
+
+.degree-form {
+  position: inherit;
+  display: grid;
+  width: calc(0.25 * 1480px);
+  grid-template-columns: 1fr 1fr;
+  z-index: 1;
+  background: #f4f4f4;
+}
+
+.radio-select {
+  display: inline;
   margin: 10px;
 }

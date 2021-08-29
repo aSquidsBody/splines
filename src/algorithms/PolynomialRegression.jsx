@@ -11,7 +11,7 @@ const getMatrix = (xData, degree) =>
 
 const getColumn = (yData, matrix) => math.multiply(yData, matrix);
 
-const regression = (xData, yData, degree) => {
+export const regressionCoefficients = (xData, yData, degree) => {
   const polynomials = getMatrix(xData, degree);
 
   const MTM = math.multiply(math.transpose(polynomials), polynomials);
@@ -22,4 +22,26 @@ const regression = (xData, yData, degree) => {
   return coefficients;
 };
 
-export default regression;
+export const regression = (points, degree) => {
+  // x & y data as mathjs arrays
+  const xData = math
+    .ones(points.length)
+    .map((val, idx) => points[idx].coords[0]);
+  const yData = math
+    .ones(points.length)
+    .map((val, idx) => points[idx].coords[1]);
+
+  if (points.length > degree) {
+    const coeffs = regressionCoefficients(xData, yData, degree);
+    return regressionPolynomial(coeffs);
+  }
+};
+
+export var regressionPolynomial = (coeffs) => (x) => {
+  var y = 0;
+  coeffs.forEach((coeff, idx) => {
+    const power = coeffs.length - 1 - idx;
+    y = y + coeff * x ** power;
+  });
+  return y;
+};
