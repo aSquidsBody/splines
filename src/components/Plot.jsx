@@ -10,7 +10,7 @@ import {
   yCoord2Pixel,
 } from "../utils/plot";
 import { regression } from "../algorithms/PolynomialRegression";
-import { spline } from "../algorithms/Spline";
+import { cubicSpline, linearSpline } from "../algorithms/Spline";
 
 class Plot extends Component {
   state = {
@@ -286,10 +286,12 @@ class Plot extends Component {
 
         func = regression(this.props.points, degree);
       } else if (
-        splitPlotType[0] === "Spline" &&
+        splitPlotType[0] === "CubicSpline" &&
         this.props.points.length > 2
       ) {
-        func = spline(this.props.points);
+        func = cubicSpline(this.props.points);
+      } else if (splitPlotType[0] === 'LinearSpline' && this.props.points.length > 1) {
+        func = linearSpline(this.props.points);
       }
     }
     // If there is a plot to draw, draw the plot

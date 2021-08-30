@@ -133,16 +133,28 @@ class App extends Component {
                   </div>
                 );
               })}
-              <div className="radio-select" key={"Spline"}>
+              <div className="radio-select" key={"CubicSpline"}>
                 <label>
                   <input
                     className="radio"
                     type="radio"
-                    value={"Spline"}
-                    checked={this.state.plot.type === "Spline"}
+                    value={"CubicSpline"}
+                    checked={this.state.plot.type === "CubicSpline"}
                     onChange={this.functionChange}
                   />
-                  {"Spline"}
+                  {"Cubic Spline"}
+                </label>
+              </div>
+              <div className="radio-select" key={"LinearSpline"}>
+                <label>
+                  <input
+                    className="radio"
+                    type="radio"
+                    value={"LinearSpline"}
+                    checked={this.state.plot.type === "LinearSpline"}
+                    onChange={this.functionChange}
+                  />
+                  {"Linear Spline"}
                 </label>
               </div>
             </form>
