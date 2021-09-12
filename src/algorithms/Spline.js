@@ -1,282 +1,155 @@
-import { zeros, ones, lusolve, squeeze, matrix } from "mathjs";
-
-export const linearRows = (x) => {
-  const xArray = x.valueOf();
-  const N = xArray.length;
-
-  const rows = zeros(2 * (N - 1)).map((o, rowIdx) => {
-    let row;
-    let offset;
-    let modRowIdx;
-
-    if (rowIdx[0] < N - 1) {
-      offset = 2 * rowIdx[0];
-
-      row = zeros(2 * (N - 1)).map((o, colIdx) => {
-        if (colIdx[0] === offset) return 1;
-        else if (colIdx[0] === offset + 1) return xArray[rowIdx[0]];
-        else return 0;
-      });
-    } else {
-      modRowIdx = rowIdx[0] - (N - 1);
-      offset = 2 * modRowIdx;
-
-      row = zeros(2 * (N - 1)).map((o, colIdx) => {
-        if (colIdx[0] === offset) return 1;
-        else if (colIdx[0] === offset + 1) return xArray[modRowIdx + 1];
-        else return 0;
-      });
+const cube = (a, b, c, d, x0) => {
+  return (x) => {
+    var y = 0;
+    var xP = 1;
+    const coeffs = [a, b, c, d];
+    for (var power = 0; power < 4; power++) {
+      y = y + coeffs[power] * xP;
+      xP = xP * (x - x0);
     }
 
-    return row;
-  });
-
-  return rows;
-};
-
-export const cubicRows = (x) => {
-  // x is a mathjs matrix
-  const xArray = x.valueOf();
-  const N = xArray.length;
-
-  const rows = zeros(4 * (N - 1)).map((o, rowIdx) => {
-    let row;
-    let offset;
-    let modRowIdx;
-
-    if (rowIdx[0] < N - 1) {
-      offset = rowIdx[0] * 4;
-
-      row = zeros(4 * (N - 1)).map((o, colIdx) => {
-        if (colIdx[0] === offset) return 1;
-        else if (colIdx[0] === offset + 1) return xArray[rowIdx[0]];
-        else if (colIdx[0] === offset + 2) return xArray[rowIdx[0]] ** 2;
-        else if (colIdx[0] === offset + 3) return xArray[rowIdx[0]] ** 3;
-        else return 0;
-      });
-    } else if (rowIdx[0] < 2 * (N - 1)) {
-      modRowIdx = rowIdx[0] - (N - 1);
-      offset = 4 * modRowIdx;
-
-      row = zeros(4 * (N - 1)).map((o, colIdx) => {
-        if (colIdx[0] === offset) return 1;
-        else if (colIdx[0] === offset + 1) return xArray[modRowIdx + 1];
-        else if (colIdx[0] === offset + 2) return xArray[modRowIdx + 1] ** 2;
-        else if (colIdx[0] === offset + 3) return xArray[modRowIdx + 1] ** 3;
-        else return 0;
-      });
-    } else if (rowIdx[0] < 2 * (N - 1) + (N - 2)) {
-      modRowIdx = rowIdx[0] - 2 * (N - 1) + 1;
-      offset = 4 * modRowIdx;
-
-      row = zeros(4 * (N - 1)).map((o, colIdx) => {
-        if (colIdx[0] === offset - 4) return 0;
-        else if (colIdx[0] === offset - 4 + 1) return -1;
-        else if (colIdx[0] === offset - 4 + 2) return -2 * xArray[modRowIdx];
-        else if (colIdx[0] === offset - 4 + 3)
-          return -3 * xArray[modRowIdx] ** 2;
-        else if (colIdx[0] === offset) return 0;
-        else if (colIdx[0] === offset + 1) return 1;
-        else if (colIdx[0] === offset + 2) return 2 * xArray[modRowIdx];
-        else if (colIdx[0] === offset + 3) return 3 * xArray[modRowIdx] ** 2;
-        else return 0;
-      });
-    } else if (rowIdx[0] < 2 * (N - 1) + 2 * (N - 2)) {
-      modRowIdx = rowIdx[0] - 2 * (N - 1) - (N - 2) + 1;
-      offset = 4 * modRowIdx;
-
-      row = zeros(4 * (N - 1)).map((o, colIdx) => {
-        if (colIdx[0] === offset - 4) return 0;
-        else if (colIdx[0] === offset - 4 + 1) return 0;
-        else if (colIdx[0] === offset - 4 + 2) return -2;
-        else if (colIdx[0] === offset - 4 + 3) return -6 * xArray[modRowIdx];
-        else if (colIdx[0] === offset) return 0;
-        else if (colIdx[0] === offset + 1) return 0;
-        else if (colIdx[0] === offset + 2) return 2;
-        else if (colIdx[0] === offset + 3) return 6 * xArray[modRowIdx];
-        else return 0;
-      });
-    } else if (rowIdx[0] === 2 * (N - 1) + 2 * (N - 2)) {
-      row = zeros(4 * (N - 1)).map((o, colIdx) => {
-        if (colIdx[0] === 0) return 0;
-        else if (colIdx[0] === 1) return 0;
-        else if (colIdx[0] === 2) return 2;
-        else if (colIdx[0] === 3) return 6 * xArray[0];
-        else return 0;
-      });
-    } else {
-      row = zeros(4 * (N - 1)).map((o, colIdx) => {
-        if (colIdx[0] === 4 * (N - 1) - 4) return 0;
-        else if (colIdx[0] === 4 * (N - 1) - 3) return 0;
-        else if (colIdx[0] === 4 * (N - 1) - 2) return -2;
-        else if (colIdx[0] === 4 * (N - 1) - 1) return -6 * xArray[N - 1];
-        else return 0;
-      });
-    }
-    return row;
-  });
-
-  return rows;
-};
-
-export const linearCol = (y) => {
-  // y is a mathjs matrix
-  const yArray = y.valueOf();
-  const N = yArray.length;
-
-  const col = ones(2 * (N - 1)).map((o, idx) => {
-    let colVal;
-    if (idx < N - 1) {
-      colVal = yArray[idx];
-    } else if (idx < 2 * (N - 1)) {
-      colVal = yArray[idx - (N - 1) + 1];
-    } else {
-      colVal = 0;
-    }
-
-    return colVal;
-  });
-
-  return col;
-};
-
-export const cubicCol = (y) => {
-  // y is a mathjs matrix
-  const yArray = y.valueOf();
-  const N = yArray.length;
-
-  const col = ones(4 * (N - 1)).map((o, idx) => {
-    let colVal;
-    if (idx < N - 1) {
-      colVal = yArray[idx];
-    } else if (idx < 2 * (N - 1)) {
-      colVal = yArray[idx - (N - 1) + 1];
-    } else {
-      colVal = 0;
-    }
-
-    return colVal;
-  });
-
-  return col;
-};
-
-export const linearSplineCoeffs = (x, y) => {
-  const A = linearRows(x);
-  const b = linearCol(y);
-
-  const coeffs = squeeze(lusolve(A, b)).valueOf();
-
-  return coeffs;
+    return y;
+  };
 };
 
 export const cubicSplineCoeffs = (x, y) => {
-  const A = cubicRows(x);
-  const b = cubicCol(y);
+  const N = x.length - 1;
 
-  const coeffs = squeeze(lusolve(A, b)).valueOf();
+  var a = y.map((yi) => yi);
+  var b = Array.from(Array(N).keys()).map((idx) => 0);
+  var d = Array.from(Array(N).keys()).map((idx) => 0);
+  var h = Array.from(Array(N).keys()).map((idx) => {
+    return x[idx + 1] - x[idx];
+  });
+
+  const alpha = h.map((hi, idx) => {
+    if (idx > 0) {
+      return (
+        (3 / hi) * (a[idx + 1] - a[idx]) -
+        (3 / h[idx - 1]) * (a[idx] - a[idx - 1])
+      );
+    } else {
+      return hi;
+    }
+  });
+
+  var c = Array.from(Array(N + 1).keys()).map(() => 0);
+  var l = Array.from(Array(N + 1).keys()).map(() => 0);
+  var u = Array.from(Array(N + 1).keys()).map(() => 0);
+  var z = Array.from(Array(N + 1).keys()).map(() => 0);
+
+  l[0] = 1;
+
+  for (var i = 1; i < N; i++) {
+    l[i] = 2 * (x[i + 1] - x[i - 1]) - h[i - 1] * u[i - 1];
+    u[i] = h[i] / l[i];
+    z[i] = (alpha[i] - h[i - 1] * z[i - 1]) / l[i];
+  }
+
+  l[N] = 1;
+  z[N] = 0;
+  c[N] = 0;
+
+  for (var j = N - 1; j >= 0; j--) {
+    c[j] = z[j] - u[j] * c[j + 1];
+    b[j] = (a[j + 1] - a[j]) / h[j] - (h[j] * (c[j + 1] + 2 * c[j])) / 3;
+    d[j] = (c[j + 1] - c[j]) / (3 * h[j]);
+  }
+
+  const coeffs = Array.from(Array(N).keys()).map((idx) => {
+    return [a[idx], b[idx], c[idx], d[idx]];
+  });
 
   return coeffs;
 };
 
-const cube = (a, b, c, d) => (x) => {
-  return a + b * x + c * x ** 2 + d * x ** 3;
+export const linearSplineCoeffs = (x, y) => {
+  const coeffs = Array.from(Array(x.length - 1).keys()).map((idx) => {
+    // A is the constant term, B is the slope of the line
+    if (x[idx] === x[idx + 1]) {
+      // vertical line
+      const A = x[idx];
+      const B = NaN;
+      return [A, B];
+    } else {
+      const B = (y[idx + 1] - y[idx]) / (x[idx + 1] - x[idx]);
+      const A = y[idx] - B * x[idx];
+      return [A, B];
+    }
+  });
+
+  return coeffs;
+};
+
+const sortInput = (points) => {
+  const xArray = points.map((point) => point.coords[0]);
+  const yArray = points.map((point) => point.coords[1]);
+
+  var xyPoints = Array.from(Array(xArray.length).keys())
+    .map((idx) => {
+      return [xArray[idx], yArray[idx]];
+    })
+    .valueOf();
+
+  xyPoints.sort((xy1, xy2) => {
+    return xy1[0] - xy2[0];
+  });
+
+  const sortedX = xyPoints.map((xy) => xy[0]).valueOf();
+  const sortedY = xyPoints.map((xy) => xy[1]).valueOf();
+
+  return { sortedX, sortedY };
+};
+
+const piecewiseFunction = (partitions, funcs) => {
+  return (x) => {
+    var returnVal = null;
+
+    partitions.slice(0, partitions.length - 1).forEach((xi, idx) => {
+      const xip1 = partitions[idx + 1];
+
+      if (xi <= x && x < xip1) {
+        const func = funcs[idx];
+        returnVal = func(x);
+      }
+    });
+
+    return returnVal;
+  };
 };
 
 export const linearSpline = (points) => {
-  const xArray = points.map((point) => point.coords[0]);
-  const yArray = points.map((point) => point.coords[1]);
+  const { sortedX, sortedY } = sortInput(points);
 
-  var xyPoints = ones(xArray.length)
-    .map((xi, idx) => {
-      return [xArray[idx], yArray[idx]];
-    })
-    .valueOf();
+  const coeffs = linearSplineCoeffs(sortedX, sortedY);
 
-  xyPoints.sort((xy1, xy2) => {
-    return xy1[0] - xy2[0];
-  });
-
-  const sortedX = matrix(xyPoints.map((xy) => xy[0]));
-  const sortedXArray = sortedX.valueOf();
-  const sortedY = matrix(xyPoints.map((xy) => xy[1]));
-
-  const coeffs = linearSplineCoeffs(sortedX, sortedY).valueOf();
-
-  const linearSplines = sortedXArray
-    .slice(0, sortedXArray.length - 1)
+  const linearSplines = sortedX
+    .slice(0, sortedX.length - 1) // one point more than functions
     .map((o, idx) => {
-      const offset = 2 * idx;
-      const a = coeffs[offset];
-      const b = coeffs[offset + 1];
+      const a = coeffs[idx][0];
+      const b = coeffs[idx][1];
       const c = 0;
       const d = 0;
-      return cube(a, b, c, d);
+      return cube(a, b, c, d, 0);
     });
 
-  const splineFunction = (xInput) => {
-    var returnVal = null;
-
-    sortedXArray.slice(0, sortedXArray.length - 1).forEach((xi, idx) => {
-      const xip1 = sortedXArray[idx + 1];
-
-      if (xi <= xInput && xInput < xip1) {
-        const linearFunc = linearSplines[idx];
-        returnVal = linearFunc(xInput);
-      }
-    });
-
-    return returnVal;
-  };
-
-  return splineFunction;
+  return piecewiseFunction(sortedX, linearSplines);
 };
 
 export const cubicSpline = (points) => {
-  const xArray = points.map((point) => point.coords[0]);
-  const yArray = points.map((point) => point.coords[1]);
+  const { sortedX, sortedY } = sortInput(points);
 
-  var xyPoints = ones(xArray.length)
-    .map((xi, idx) => {
-      return [xArray[idx], yArray[idx]];
-    })
-    .valueOf();
+  const coeffs = cubicSplineCoeffs(sortedX, sortedY);
 
-  xyPoints.sort((xy1, xy2) => {
-    return xy1[0] - xy2[0];
-  });
-
-  const sortedX = matrix(xyPoints.map((xy) => xy[0]));
-  const sortedXArray = sortedX.valueOf();
-  const sortedY = matrix(xyPoints.map((xy) => xy[1]));
-
-  const coeffs = cubicSplineCoeffs(sortedX, sortedY).valueOf();
-
-  const cubicSplines = sortedXArray
-    .slice(0, sortedXArray.length - 1)
-    .map((o, idx) => {
-      const offset = 4 * idx;
-      const a = coeffs[offset];
-      const b = coeffs[offset + 1];
-      const c = coeffs[offset + 2];
-      const d = coeffs[offset + 3];
-      return cube(a, b, c, d);
+  const cubicSplines = sortedX
+    .slice(0, sortedX.length - 1) // one point more than functions
+    .map((xidx, idx) => {
+      const a = coeffs[idx][0];
+      const b = coeffs[idx][1];
+      const c = coeffs[idx][2];
+      const d = coeffs[idx][3];
+      return cube(a, b, c, d, xidx);
     });
 
-  const splineFunction = (xInput) => {
-    var returnVal = null;
-
-    sortedXArray.slice(0, sortedXArray.length - 1).forEach((xi, idx) => {
-      const xip1 = sortedXArray[idx + 1];
-
-      if (xi <= xInput && xInput < xip1) {
-        const cubicFunc = cubicSplines[idx];
-        returnVal = cubicFunc(xInput);
-      }
-    });
-
-    return returnVal;
-  };
-
-  return splineFunction;
+  return piecewiseFunction(sortedX, cubicSplines);
 };

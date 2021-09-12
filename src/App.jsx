@@ -1,14 +1,17 @@
 import React, { Component } from "react";
 import { v4 as uuidv4 } from "uuid";
 
+import Navbar from "./components/Navbar";
 import Plot from "./components/Plot";
+import TraceForm from "./components/forms/TraceForm";
+import PointForm from "./components/forms/PointForm";
+import TruthForm from "./components/forms/TruthForm";
 
 import "./styles/App.css";
 
 class App extends Component {
   state = {
     points: [],
-    maxDegree: 10,
     plot: {
       type: "PolynomialRegression+1",
     },
@@ -16,15 +19,37 @@ class App extends Component {
       x: 0,
       y: 0,
     },
-    message: "",
+    traces: {
+      Regression: [
+        { verboseName: "Linear", name: "PolynomialRegression+1" },
+        { verboseName: "Quadratic", name: "PolynomialRegression+2" },
+        { verboseName: "Cubic", name: "PolynomialRegression+3" },
+        { verboseName: "4th degree", name: "PolynomialRegression+4" },
+        { verboseName: "5th degree", name: "PolynomialRegression+5" },
+        { verboseName: "6th degree", name: "PolynomialRegression+6" },
+        { verboseName: "7th degree", name: "PolynomialRegression+7" },
+        { verboseName: "8th degree", name: "PolynomialRegression+8" },
+        { verboseName: "9th degree", name: "PolynomialRegression+9" },
+        { verboseName: "10th degree", name: "PolynomialRegression+10" },
+      ],
+      Spline: [
+        { verboseName: "Cubic", name: "CubicSpline" },
+        { verboseName: "Linear", name: "LinearSpline" },
+      ],
+    },
   };
 
   constructor() {
     super();
     this.removePoint = this.removePoint.bind(this);
+    this.traceChange = this.traceChange.bind(this);
+    this.inputXchange = this.inputXchange.bind(this);
+    this.inputYchange = this.inputYchange.bind(this);
+    this.addPoint = this.addPoint.bind(this);
+    this.clearPoints = this.clearPoints.bind(this);
   }
 
-  addPoint = () => {
+  addPoint = (x, y) => {
     const points = this.state.points;
 
     const newId = uuidv4().toString().replace("-", "1");
@@ -34,7 +59,7 @@ class App extends Component {
       ref,
       id: newId,
       pos: [0, 0, 0, 0],
-      coords: [20 * (Math.random() - 0.5), 10 * (Math.random() - 0.5)],
+      coords: [x, y],
       diameter: 15,
     });
 
@@ -52,15 +77,21 @@ class App extends Component {
     this.setState(state);
   };
 
+  clearPoints = () => {
+    this.setState({
+      points: [],
+    });
+  };
+
   resetPoints = () => {
     this.setState({
       points: [],
     });
   };
 
-  functionChange = (e) => {
+  traceChange = (traceName) => {
     const plot = this.state.plot;
-    plot.type = e.target.value;
+    plot.type = traceName;
 
     this.setState({
       plot,
@@ -100,97 +131,41 @@ class App extends Component {
   render() {
     return (
       <div className="app">
-        <nav className="navbar">
-          <div className="container">
-            <h3 className="title">Regression Explorer</h3>
-          </div>
-        </nav>
-        <section className="plot-section container">
-          <section className="options-bar container">
-            <form className="degree-form">
-              {Array.from(new Array(this.state.maxDegree), (x, idx) => {
-                return (
-                  <div className="radio-select" key={idx.toString() + "poly"}>
-                    <label>
-                      <input
-                        className="radio"
-                        type="radio"
-                        value={"PolynomialRegression+" + (idx + 1).toString()}
-                        checked={
-                          this.state.plot.type ===
-                          "PolynomialRegression+" + (idx + 1).toString()
-                        }
-                        onChange={this.functionChange}
-                      />
-                      {idx + 1 === 1
-                        ? "Linear"
-                        : idx + 1 === 2
-                        ? "Quadratic"
-                        : idx + 1 === 3
-                        ? "Cubic"
-                        : (idx + 1).toString() + "th degree"}
-                    </label>
-                  </div>
-                );
-              })}
-              <div className="radio-select" key={"CubicSpline"}>
-                <label>
-                  <input
-                    className="radio"
-                    type="radio"
-                    value={"CubicSpline"}
-                    checked={this.state.plot.type === "CubicSpline"}
-                    onChange={this.functionChange}
-                  />
-                  {"Cubic Spline"}
-                </label>
-              </div>
-              <div className="radio-select" key={"LinearSpline"}>
-                <label>
-                  <input
-                    className="radio"
-                    type="radio"
-                    value={"LinearSpline"}
-                    checked={this.state.plot.type === "LinearSpline"}
-                    onChange={this.functionChange}
-                  />
-                  {"Linear Spline"}
-                </label>
-              </div>
-            </form>
-
-            <form className="point-form">
-              <p>Enter x, y point...</p>
+        <Navbar />
+        <div className="content container">
+          <section className="options-bar">
+            <div className="description">
+              <p>
+                {"Visualize "}
+                <span className="italics">Polynomial Regression</span> and{" "}
+                <span className="italics">Splines</span>
+              </p>
+              <p>_</p>
+              <p>Learn more about Polynomial Regression</p>
+              <p>Learn more about Splines</p>
+            </div>
+            {/* <PointForm
+              pointInput={this.state.pointInput}
+              inputXchange={this.inputXchange}
+              inputYchange={this.inputYchange}
+              addPoint={this.addPoint}
+            /> */}
+            <TraceForm
+              traces={this.state.traces}
+              traceChange={this.traceChange}
+            />
+            <TruthForm addPoint={this.addPoint} />
+            <form className="clear-form">
               <input
-                id="x-input"
-                name="x-input"
-                type="text"
-                value={this.state.pointInput.x}
-                onChange={this.inputXchange}
-                className="coord-input"
-              />
-              <input
-                id="y-input"
-                name="y-input"
-                type="text"
-                value={this.state.pointInput.y}
-                onChange={this.inputYchange}
-                className="coord-input"
-              />
-              <input
-                className="btn"
+                className="btn clear-button"
                 type="button"
-                onClick={this.addPoint}
-                value="Add to graph"
-              ></input>
+                value={"Clear Graph"}
+                onClick={this.clearPoints}
+              />
             </form>
           </section>
-          <Plot
-            points={this.state.points}
-            removePoint={this.removePoint}
-            plot={this.state.plot}
-          />
-        </section>
+          <Plot points={this.state.points} plot={this.state.plot} />
+        </div>
       </div>
     );
   }

@@ -21,6 +21,7 @@ class Plot extends Component {
       thickness: 3,
       xRangeCoords: [-5, 5],
       yRangeCoords: [(-5 * 588) / 1480, (5 * 588) / 1480],
+      maxTickGap: 250, // px
     },
     mousePan: [0, 0],
   };
@@ -290,7 +291,10 @@ class Plot extends Component {
         this.props.points.length > 2
       ) {
         func = cubicSpline(this.props.points);
-      } else if (splitPlotType[0] === 'LinearSpline' && this.props.points.length > 1) {
+      } else if (
+        splitPlotType[0] === "LinearSpline" &&
+        this.props.points.length > 1
+      ) {
         func = linearSpline(this.props.points);
       }
     }
@@ -303,7 +307,7 @@ class Plot extends Component {
     const documentHeight = window.innerHeight;
 
     return (
-      <div id="plot" className="plot">
+      <section id="plot" className="plot">
         <canvas
           id="canvas"
           height={documentHeight.toString() + "px"}
@@ -339,7 +343,7 @@ class Plot extends Component {
               );
             })
           : null}
-      </div>
+      </section>
     );
   }
 }

@@ -64,7 +64,7 @@ export const plotAxes = (ctx, axes) => {
 
   ctx.beginPath();
   ctx.lineWidth = axes.thickness;
-  ctx.strokeStyle = "rgb(0, 0, 0)";
+  ctx.strokeStyle = "#c2c2ff";
 
   // x-axis
   ctx.moveTo(0, originYPixel);
@@ -76,6 +76,25 @@ export const plotAxes = (ctx, axes) => {
 
   ctx.closePath();
   ctx.stroke();
+};
+
+const tickScale = (ctx, axes) => {
+  // max gap is the maximum gap in pixels for the ticks
+  const baseCoord0 = xPixel2Coord(0.0, ctx, axes);
+  const baseCoord1 = xPixel2Coord(axes.maxTickGap, ctx, axes);
+
+  const maxGap = baseCoord1 - baseCoord0;
+  const scaleExp = Math.floor(Math.log10(baseCoord1 - baseCoord0));
+  const scaleBase = 10 ** scaleExp;
+  const scaleMult = maxGap / scaleBase;
+
+  if (scaleMult >= 5) {
+    return { scale: scaleBase * 5, exp: scaleExp };
+  } else if (scaleMult >= 2) {
+    return { scale: scaleBase * 2, exp: scaleExp };
+  } else {
+    return { scale: scaleBase, exp: scaleExp };
+  }
 };
 
 // Plot the ticks on axes
@@ -93,24 +112,34 @@ export const plotTicks = (ctx, axes) => {
     0
   );
 
-  // Compute the x-axis tick scale
-  const xRange = axes.xRangeCoords[1] - axes.xRangeCoords[0];
-  const xScale = Math.floor(Math.log(xRange) / Math.log(5)) - 1;
-  const xTick = 5 ** xScale;
+  // Get the scale of the ticks
+  const { scale, exp } = tickScale(ctx, axes);
 
-  var lowerMod = axes.xRangeCoords[0] % xTick;
-  lowerMod = lowerMod <= 0 ? lowerMod : lowerMod;
-  const lowerX = axes.xRangeCoords[0] - lowerMod;
+  const decimals = Math.abs(exp);
 
-  var higherMod = axes.xRangeCoords[1] % xTick;
-  higherMod = higherMod >= 0 ? higherMod : xTick + higherMod;
-  const higherX = axes.xRangeCoords[1] - higherMod;
+  // Get the first and last ticks to appear on the screen
+  const lowerX = parseFloat(
+    (axes.xRangeCoords[0] + (-axes.xRangeCoords[0] % scale)).toFixed(decimals)
+  );
+  const higherX = parseFloat(
+    (axes.xRangeCoords[1] - (axes.xRangeCoords[1] % scale)).toFixed(decimals)
+  );
+  const lowerY = parseFloat(
+    (axes.yRangeCoords[0] + (-axes.yRangeCoords[0] % scale)).toFixed(decimals)
+  );
+  const higherY = parseFloat(
+    (axes.yRangeCoords[1] - (axes.yRangeCoords[1] % scale)).toFixed(decimals)
+  );
 
-  // Define the x-ticks
-  const tickXCoords = range(lowerX, higherX + xTick, xTick);
+  // Define the ticks
+  const tickXCoords = range(lowerX, higherX + scale, scale);
+  const tickYCoords = range(lowerY, higherY + scale, scale);
 
   const tickXPixels = tickXCoords.map((xCoord) =>
     xCoord2Pixel(xCoord, ctx, axes)
+  );
+  const tickYPixels = tickYCoords.map((yCoord) =>
+    yCoord2Pixel(yCoord, ctx, axes)
   );
 
   // Draw the x-ticks
@@ -124,41 +153,30 @@ export const plotTicks = (ctx, axes) => {
     // Set up the label
     ctx.font = "1rem Urbanist";
     const labelNumber = tickXCoords.valueOf()[idx];
-    const label =
-      xScale < -2 || xScale > 2
-        ? labelNumber.toExponential(1).toString()
-        : labelNumber.toFixed(2).toString();
 
-    const leftOffset = ctx.measureText(label).width / 2;
-
-    if (label !== "0") {
-      if (lowerYPixel + 15 > ctx.canvas.height) {
-        ctx.fillText(label, xPixel - leftOffset, upperYPixel - 5);
+    if (parseFloat(labelNumber.toFixed(Math.abs(exp))) !== 0.0) {
+      let label;
+      if (exp < -2 || exp > 3) {
+        label = labelNumber.toExponential(1).toString();
+      } else if (exp < -1) {
+        label = labelNumber.toFixed(2).toString();
+      } else if (exp < 0) {
+        label = labelNumber.toFixed(1).toString();
       } else {
-        ctx.fillText(label, xPixel - leftOffset, lowerYPixel + 15);
+        label = parseInt(labelNumber).toString();
+      }
+
+      const leftOffset = ctx.measureText(label).width / 2;
+
+      if (label !== "0") {
+        if (lowerYPixel + 15 > ctx.canvas.height) {
+          ctx.fillText(label, xPixel - leftOffset, upperYPixel - 5);
+        } else {
+          ctx.fillText(label, xPixel - leftOffset, lowerYPixel + 15);
+        }
       }
     }
   });
-
-  // Compute the y-axis tick scale
-  const yRange = axes.yRangeCoords[1] - axes.yRangeCoords[0];
-  const yScale = Math.floor(Math.log(yRange) / Math.log(5)) - 1;
-  const yTick = 5 ** yScale;
-
-  lowerMod = axes.yRangeCoords[0] % yTick;
-  lowerMod = lowerMod <= 0 ? lowerMod : lowerMod;
-  const lowerY = axes.yRangeCoords[0] - lowerMod;
-
-  higherMod = axes.yRangeCoords[1] % yTick;
-  higherMod = higherMod >= 0 ? higherMod : yTick + higherMod;
-  const higherY = axes.yRangeCoords[1] - higherMod;
-
-  // Define the y-ticks
-  const tickYCoords = range(lowerY, higherY + yTick, yTick);
-
-  const tickYPixels = tickYCoords.map((yCoord) =>
-    yCoord2Pixel(yCoord, ctx, axes)
-  );
 
   // Draw the y-ticks
   tickYPixels.forEach((yPixel, idx) => {
@@ -171,17 +189,26 @@ export const plotTicks = (ctx, axes) => {
     // Set up the label
     ctx.font = "1rem Urbanist";
     const labelNumber = tickYCoords.valueOf()[idx];
-    const label =
-      yScale < -2 || yScale > 2
-        ? labelNumber.toExponential(1).toString()
-        : labelNumber.toFixed(2).toString();
 
-    const leftOffset = ctx.measureText(label).width + 5;
-    if (label !== "0") {
-      if (leftXPixel - leftOffset <= 0) {
-        ctx.fillText(label, rightXPixel + 5, yPixel + 5);
+    if (parseFloat(labelNumber.toFixed(Math.abs(exp))) !== 0.0) {
+      let label;
+      if (exp < -2 || exp > 3) {
+        label = labelNumber.toExponential(1).toString();
+      } else if (exp < -1) {
+        label = labelNumber.toFixed(2).toString();
+      } else if (exp < 0) {
+        label = labelNumber.toFixed(1).toString();
       } else {
-        ctx.fillText(label, leftXPixel - leftOffset, yPixel + 5);
+        label = parseInt(labelNumber).toString();
+      }
+
+      const leftOffset = ctx.measureText(label).width + 5;
+      if (label !== "0") {
+        if (leftXPixel - leftOffset <= 0) {
+          ctx.fillText(label, rightXPixel + 5, yPixel + 5);
+        } else {
+          ctx.fillText(label, leftXPixel - leftOffset, yPixel + 5);
+        }
       }
     }
   });
@@ -221,7 +248,7 @@ export const plotFunction = (ctx, axes, func) => {
 
   // we will be drawing small lines between points (linear interp) to produce the picture
   ctx.lineWidth = axes.thickness;
-  ctx.strokeStyle = "rgb(0, 0, 255)";
+  ctx.strokeStyle = "rgb(60, 60, 60)";
 
   const numInterp = Math.floor(ctx.canvas.width / dx);
   const interpXs = range(dx, (numInterp + 1) * dx, dx); // xPixels
