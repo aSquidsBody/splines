@@ -162,7 +162,7 @@ li {
   position: absolute;
   display: grid;
   top: 28px;
-  height: 89%;
+  height: 90%;
   width: 100%;
   padding: 10px;
   grid-template-columns: repeat(3, 1fr);
