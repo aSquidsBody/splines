@@ -132,39 +132,63 @@ class App extends Component {
     return (
       <div className="app">
         <Navbar />
-        <div className="content container">
-          <section className="options-bar">
-            <div className="description">
-              <p>
-                {"Visualize "}
-                <span className="italics">Polynomial Regression</span> and{" "}
-                <span className="italics">Splines</span>
-              </p>
-              <p>_</p>
-              <p>Learn more about Polynomial Regression</p>
-              <p>Learn more about Splines</p>
-            </div>
-            {/* <PointForm
-              pointInput={this.state.pointInput}
-              inputXchange={this.inputXchange}
-              inputYchange={this.inputYchange}
-              addPoint={this.addPoint}
-            /> */}
-            <TraceForm
-              traces={this.state.traces}
-              traceChange={this.traceChange}
-            />
-            <TruthForm addPoint={this.addPoint} />
-            <form className="clear-form">
-              <input
-                className="btn clear-button"
-                type="button"
-                value={"Clear Graph"}
-                onClick={this.clearPoints}
-              />
-            </form>
-          </section>
+        <div className="content">
           <Plot points={this.state.points} plot={this.state.plot} />
+          <div className="invisible-options-container">
+            <section className="options-bar">
+              <TruthForm addPoint={this.addPoint} className={"truth-form"} />
+              <TraceForm
+                traces={this.state.traces}
+                traceChange={this.traceChange}
+                className={"trace-form"}
+              />
+              <div className="description">
+                <p>
+                  {"Visualize "}
+                  <span className="italics">
+                    Polynomial Regression
+                  </span> and <span className="italics">Splines</span>
+                </p>
+                <p>_</p>
+                <p>
+                  Generate datapoints and then choose a regression/spline
+                  function to fit the data!
+                </p>
+                <p>Drag the points on screen and watch the plot react!</p>
+                <p>_</p>
+                <p>
+                  Learn more about{" "}
+                  <a
+                    className="light-link"
+                    href="https://en.wikipedia.org/wiki/Polynomial_regression"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Polynomial Regression
+                  </a>
+                </p>
+                <p>
+                  Learn more about{" "}
+                  <a
+                    href="https://en.wikipedia.org/wiki/Spline_(mathematics)"
+                    className="light-link"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Splines
+                  </a>
+                </p>
+              </div>
+            </section>
+          </div>
+          <form className="clear-form">
+            <input
+              className="btn clear-button"
+              type="button"
+              value={"Clear Graph"}
+              onClick={this.clearPoints}
+            />
+          </form>
         </div>
       </div>
     );

@@ -16,6 +16,7 @@ li {
 /* APP */
 .app {
   overflow-x: hidden;
+  overflow-y: hidden;
 }
 
 .navbar {
@@ -31,7 +32,6 @@ li {
     rgb(77, 0, 219)
   ); */
   background: linear-gradient(0.25turn, #2290ac, #139bab);
-  border-bottom: black solid 1px;
 }
 
 .container {
@@ -39,38 +39,36 @@ li {
   margin: auto;
 }
 
-.title {
+.navbar-title {
   display: inline-block;
   font-family: "Urbanist", sans-serif;
   width: auto;
   color: #fafafa;
   font-size: 1.75rem;
   font-weight: lighter;
-  padding: 10px;
+  padding: 5px 20px 5px 20px;
   cursor: default;
-  padding: 5px;
 }
 
 .content {
+  position: relative;
   width: 100%;
   height: calc(100vh - 44.883px);
-  padding-bottom: 5px;
 }
 
 /* Plot */
 .plot {
-  margin: 0px 10px;
   position: relative;
-  max-height: 65%;
+  height: 100%;
   min-width: 90%;
-  border: 1px solid black;
   background: white;
   box-shadow: rgb(161, 161, 161) 1px -1px 5px 1px;
 }
 
 /* Dot */
 .dot {
-  background: radial-gradient(rgb(216, 2, 2), darkred);
+  /* background: radial-gradient(rgb(216, 2, 2), darkred); */
+  background: radial-gradient(rgb(194, 194, 255), rgb(26, 26, 253));
   height: 15px;
   width: 15px;
   border-radius: 50%;
@@ -78,7 +76,7 @@ li {
   position: absolute;
   top: 0px;
   left: 0px;
-  z-index: 1;
+  z-index: 0;
 
   display: flex;
   justify-content: center;
@@ -117,6 +115,15 @@ li {
   transform: translateY(2px) translateX(1px);
 }
 
+.light-link {
+  color: aquamarine;
+  font-style: italic;
+}
+
+.light-link:hover {
+  color: aqua;
+}
+
 .point-form {
   display: flex;
   justify-content: flex-end;
@@ -140,21 +147,38 @@ li {
 }
 
 /* OPTIONS & INFORMATION */
+.invisible-options-container {
+  position: absolute;
+  top: 0px;
+  left: 20px;
+  height: 100%;
+  width: 400px;
+  /* display: flex;
+  justify-content: center;
+  align-items: center; */
+}
+
 .options-bar {
-  margin: 0px 10px;
+  position: absolute;
   display: grid;
-  height: 35%;
-  grid-template-columns: repeat(12, 1fr);
-  grid-template-rows: repeat(5, 1fr);
+  top: 28px;
+  height: 88%;
+  width: 100%;
+  padding: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(12, 1fr);
+  background: #f4f4f4;
+  border: black 1px solid;
+  box-shadow: rgb(161, 161, 161) 5px 5px 5px 1px;
+  overflow-y: auto;
 }
 
 /* Trace information (spline vs regression) */
-.trace-form {
-  padding: 10px 0px;
-  grid-column: 5/7;
-  grid-row: 1/6;
-  width: 100%;
-  min-height: 260px;
+.trace-header {
+  font-weight: normal;
+  font-size: 1.25rem;
+  text-align: center;
+  text-justify: center;
 }
 
 .trace-selection {
@@ -162,21 +186,32 @@ li {
   height: auto;
 }
 
+.trace-form {
+  grid-column: 1/4;
+  width: 100%;
+  min-height: 210px;
+  margin: 10px 0px;
+}
+
 .degree-form {
   position: inherit;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  margin: 0px 10px;
 }
 
 .radio-select {
   display: inline;
-
   width: 100%;
-  height: 40px;
+  height: 27px;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.radio-center {
+  display: flex;
+  width: 60%;
+  margin: auto;
 }
 
 .radio-label {
@@ -197,12 +232,22 @@ li {
 }
 
 .dropdown-title {
+  /* background: linear-gradient(0.25turn, #2290ac, #139bab); */
+  /* background: radial-gradient(rgb(55, 69, 73), rgb(12, 146, 158)); */
+  background: radial-gradient(#42b8d6, #2dc4d4);
+
   padding: 5px 20px;
   margin: 0px;
   font-weight: 500;
   display: flex;
   position: relative;
   height: 33px;
+}
+
+.dropdown-title:active {
+  opacity: 0.75;
+  background: linear-gradient(darkred, 65%, #2290ac);
+  transform: translateY(2px) translateX(1px);
 }
 
 .dropdown-title > p {
@@ -235,11 +280,13 @@ li {
 }
 
 .dropdown-option:nth-child(2n + 1) {
-  background: linear-gradient(rgb(82, 82, 192), rgb(0, 0, 90));
+  /* background: linear-gradient(rgb(82, 82, 192), rgb(0, 0, 90)); */
+  background: linear-gradient(0.25turn, #1a6d81, #0e6e79);
 }
 
 .dropdown-option:nth-child(2n + 2) {
-  background: linear-gradient(rgb(133, 133, 189), rgb(63, 63, 105));
+  /* background: linear-gradient(rgb(133, 133, 189), rgb(63, 63, 105)); */
+  background: linear-gradient(0.25turn, #2290ac, #139bab);
 }
 
 .dropdown-option:hover {
@@ -262,15 +309,13 @@ li {
 }
 
 .description {
-  grid-column: 10/13;
-  grid-row: 1/4;
-  height: 100%;
-  color: white;
-  margin: 10px;
+  grid-column: 1/4;
+  height: 240px;
+  color: #f4f4f4;
+  margin: 30px 10px 10px 10px;
   padding: 10px;
   background: rgb(0, 0, 90);
   font-size: 1rem;
-  font-weight: 700;
 }
 
 .italics {
@@ -280,12 +325,12 @@ li {
 
 /* Truth form */
 .truth-form {
-  margin: 10px 20px 10px 10px;
-  grid-column: 1/5;
-  grid-row: 1/6;
+  margin-bottom: 10px;
+  grid-column: 1/4;
   display: flex;
   flex-direction: column;
   max-width: 100%;
+  align-items: flex-end;
 }
 
 .truth-form label {
@@ -293,9 +338,15 @@ li {
 }
 
 .truth-header {
-  font-weight: normal;
-  font-size: 1.25rem;
-  margin-bottom: 10px;
+  width: 100%;
+  /* font-weight: normal; */
+  font-weight: 550;
+  font-size: 1.35rem;
+  line-height: 27px;
+  /* margin-bottom: 10px; */
+  text-align: center;
+  /* background: radial-gradient(#2290ac, #139bab); */
+  /* color: #f4f4f4; */
 }
 
 .truth-functions {
@@ -303,13 +354,16 @@ li {
   flex-direction: row;
   border: black solid 1px;
   border-radius: 5px;
+  width: 100%;
 }
 
 .truth-functions li {
   display: flex;
   width: 33.33333%;
   border-left: black solid 1px;
-  background: radial-gradient(#2290ac, #139bab);
+  background: radial-gradient(#42b8d6, #2dc4d4);
+  /* background: radial-gradient(#333, #888); */
+  /* background: radial-gradient(rgb(100, 87, 87), 25%, rgb(153, 87, 87)); */
   align-items: center;
   justify-content: center;
 }
@@ -361,6 +415,7 @@ li {
 .generate-button {
   display: inline-block;
   width: 130px;
+  margin: 0px;
 }
 
 .noise-display {
@@ -425,11 +480,20 @@ li {
 
 /* Clear form */
 .clear-form {
-  grid-column: 12/13;
-  grid-row: 5/6;
+  position: absolute;
+  top: 1%;
+  left: 92%;
 }
 
 .clear-button {
   display: inline-block;
   width: 130px;
+  margin: 0px;
+}
+
+.sep-line {
+  width: 50%;
+  height: 3px;
+  background: black;
+  margin: 2px auto 10px auto;
 }

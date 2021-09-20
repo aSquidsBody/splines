@@ -4,9 +4,7 @@ class Navbar extends Component {
   render() {
     return (
       <nav className="navbar">
-        <div className="container">
-          <h3 className="title">Regression Explorer</h3>
-        </div>
+        <h3 className="navbar-title">Regression Explorer</h3>
       </nav>
     );
   }

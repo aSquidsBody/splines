@@ -40,9 +40,9 @@ class TraceForm extends Component {
   render() {
     const types = Object.keys(this.props.traces);
     return (
-      <div className="trace-form">
-        <h4 className="truth-header">Choose fit</h4>
-
+      <div className={this.props.className}>
+        <h4 className="truth-header">CHOOSE FIT</h4>
+        <div className="sep-line" />
         <div className="trace-selection">
           <Dropdown
             title={this.state.selectedType + " "}
@@ -50,6 +50,7 @@ class TraceForm extends Component {
             optionCallback={this.setType}
           />
         </div>
+
         <form className="degree-form">
           {this.state.selectedType
             ? this.props.traces[this.state.selectedType].map(
@@ -59,20 +60,22 @@ class TraceForm extends Component {
                       className="radio-select"
                       key={"function_" + idx.toString()}
                     >
-                      <input
-                        id={"radio" + idx.toString()}
-                        className="radio"
-                        type="radio"
-                        value={name}
-                        checked={this.state.selectedTrace === name}
-                        onChange={this.setTrace(name)}
-                      />
-                      <label
-                        htmlFor={"radio" + idx.toString()}
-                        className="radio-label"
-                      >
-                        {verboseName}
-                      </label>
+                      <div className="radio-center">
+                        <input
+                          id={"radio" + idx.toString()}
+                          className="radio"
+                          type="radio"
+                          value={name}
+                          checked={this.state.selectedTrace === name}
+                          onChange={this.setTrace(name)}
+                        />
+                        <label
+                          htmlFor={"radio" + idx.toString()}
+                          className="radio-label"
+                        >
+                          {verboseName}
+                        </label>
+                      </div>
                     </div>
                   );
                 }

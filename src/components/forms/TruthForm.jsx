@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import { ones } from "mathjs";
 
 import NumericInput from "./NumericInput";
 import Slider from "./Slider";
@@ -88,8 +87,9 @@ class TruthForm extends Component {
 
   render() {
     return (
-      <form className="truth-form">
-        <h4 className="truth-header">Add datapoints</h4>
+      <form className={this.props.className}>
+        <h4 className="truth-header">ADD DATAPOINTS</h4>
+        <div className="sep-line" />
         <ul className="truth-functions">
           {this.state.types.map((truthType, idx) => {
             return (
